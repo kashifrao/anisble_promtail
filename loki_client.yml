@@ -1,0 +1,50 @@
+#  == File: loki-client.yml
+#
+# Install & Configure Loki Client [Promtail]
+#
+#  == Copyright
+#     All Rights Reserved
+#
+# --------------------------------------------------------------------------
+# WARNING: This file belongs to the Core framework. Avoid any local changes
+# --------------------------------------------------------------------------
+#
+# This file is Managed by ANSIBLE
+# --------------------------------------------------------------------------
+
+
+    # create a promtail directory if it doesn't exist
+    - file:
+        path: /usr/src/promtail
+        state: directory
+        mode: 0755
+        owner: root
+        group: root
+
+    - name: Execute the script
+      command: cd /usr/src/promtail
+
+    - name: Execute the script
+      command: sudo rm -rf /usr/src/promtail/promtail-local-config.yaml
+
+    - name: Set up Promtail Client
+      template:
+        src: "{{ansible_roles_path}}/files/loki/promtail-local-config.yaml.j2"
+        dest: "/usr/src/promtail/promtail-local-config.yaml"
+
+    - name: "Copy Promtail Setup Bash File"
+      copy:
+        src:  "{{ansible_roles_path}}/files/loki/install_promtail_client.sh"
+        dest: /usr/src/promtail/
+        owner: root
+        group: root
+        mode: '755'
+
+    - name: Execute the bash script
+      command: sudo sh /usr/src/promtail/install_promtail_client.sh > /dev/null
+
+    - name: Start and Enable Promtail Service
+      systemd:
+        name: promtail
+        state: restarted
+        enabled: yes
